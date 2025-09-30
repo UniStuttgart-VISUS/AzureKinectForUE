@@ -65,6 +65,12 @@ public:
     static int32 CountDevices();
 
     /// <summary>
+    /// Specifies the acceptable default colour image format.
+    /// </summary>
+    static constexpr k4a_image_format_t ColourFormat
+        = k4a_image_format_t::K4A_IMAGE_FORMAT_COLOR_BGRA32;
+
+    /// <summary>
     /// Initialises a new instance.
     /// </summary>
     UAzureKinectDevice();
@@ -111,8 +117,10 @@ public:
     EKinectSensorOrientation SensorOrientation;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Device settings")
-    bool SkeletonTracking;
+    EKinectTrackerProcessing SkeletonTracking;
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Device settings")
+    bool SynchronisedImagesOnly;
 
     /// <summary>
     /// Gets the skeleton at the give zero-based index.

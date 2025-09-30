@@ -36,7 +36,7 @@
 UENUM(BlueprintType, Category = "Azure Kinect|Enums")
 enum class EKinectDepthMode : uint8 {
     /** Depth sensor will be turned off with this setting. */
-    OFF = 0         UMETA(DisplayName = "Depth mode off"),
+    OFF = 0         UMETA(DisplayName = "Disabled"),
 
     /** Depth captured at 320x288. Passive IR is also captured at 320x288. */
     NFOV_2X2BINNED  UMETA(DisplayName = "NFOV 2x2 binned (320x288)"),
@@ -58,7 +58,7 @@ enum class EKinectDepthMode : uint8 {
 UENUM(BlueprintType, Category = "Azure Kinect|Enums")
 enum class EKinectColourResolution : uint8 {
     /** Colour sensor will be turned off with this setting. */
-    RESOLUTION_OFF = 0  UMETA(DisplayName = "Colour camera off"),
+    RESOLUTION_OFF = 0  UMETA(DisplayName = "Disabled"),
 
     /** Colour captured at 1280 x 720. */
     RESOLUTION_720P     UMETA(DisplayName = "1280 x 720  [16:9]"),
@@ -142,5 +142,32 @@ enum class EKinectSensorOrientation : uint8 {
     ANTICLOCKWISE90     UMETA(DisplayName = "Anti-clockwise 90"),
 
     /** Mount the sensor upside-down */
-    FLIP180             UMETA(DisplayName = "Flip 180"), 
+    FLIP180             UMETA(DisplayName = "Flip 180"),
+};
+
+
+UENUM(BlueprintType, Category = "Azure Kinect|Enums")
+enum class EKinectTrackerProcessing : uint8 {
+
+    /** Body tracking is disabled. */
+    DISABLED = UCHAR_MAX    UMETA(DisplayName = "Disabled"),
+
+    /**
+     * SDK will use the most appropriate GPU mode for the operating system to
+     * run the tracker. Currently this is ONNX DirectML EP for Windows and ONNX
+     * Cuda EP for Linux. ONNX TensorRT EP is experimental.
+     */
+    GPU = 0                 UMETA(DisplayName = "GPU (most suitable)"),
+
+    /** SDK will use CPU only mode to run the tracker. */
+    CPU                     UMETA(DisplayName = "CPU"),
+
+    /** SDK will use ONNX Cuda EP to run the tracker. */
+    CUDA                    UMETA(DisplayName = "CUDA"),
+
+    /** SDK will use ONNX TensorRT EP to run the tracker. */
+    TENSORRT                UMETA(DisplayName = "TensorRT"),
+
+    /** SDK will use ONNX DirectML EP to run the tracker (Windows only). */
+    DIRECTML                UMETA(DisplayName = "DirectML")
 };

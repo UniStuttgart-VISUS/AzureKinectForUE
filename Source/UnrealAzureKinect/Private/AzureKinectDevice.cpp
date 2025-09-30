@@ -59,7 +59,8 @@ UAzureKinectDevice::UAzureKinectDevice(void)
         InfraredTexture(nullptr),
         Remapping(EKinectRemap::DEPTH_TO_COLOUR),
         SensorOrientation(EKinectSensorOrientation::DEFAULT),
-        SkeletonTracking(false),
+        SkeletonTracking(EKinectTrackerProcessing::DISABLED),
+        SynchronisedImagesOnly(false),
         _cntTrackedSkeletons(0),
         _thread(nullptr) {
     this->RefreshDevices();
@@ -102,7 +103,7 @@ FAzureKinectSkeleton UAzureKinectDevice::GetSkeleton(const int32 index) const {
         return FAzureKinectSkeleton();
     }
 
-    if (!this->SkeletonTracking) {
+    if (this->SkeletonTracking == EKinectTrackerProcessing::DISABLED) {
         UE_LOG(AzureKinectDeviceLog,
             Warning,
             TEXT("An empty skeleton was returned as skeleton tracking is ")
@@ -134,7 +135,7 @@ int32 UAzureKinectDevice::GetTrackedSkeletons(void) const {
         return 0;
     }
 
-    if (!this->SkeletonTracking) {
+    if (this->SkeletonTracking == EKinectTrackerProcessing::DISABLED) {
         UE_LOG(AzureKinectDeviceLog,
             Warning,
             TEXT("No skeletons are tracked as tracking is disabled."));
@@ -199,15 +200,16 @@ bool UAzureKinectDevice::Start(void) {
 
         {
             auto config = K4A_DEVICE_CONFIG_INIT_DISABLE_ALL;
-            config.camera_fps = static_cast<k4a_fps_t>(this->FrameRate);
-            config.color_format
-                = k4a_image_format_t::K4A_IMAGE_FORMAT_COLOR_BGRA32;
-            config.color_resolution
-                = static_cast<k4a_color_resolution_t>(this->ColourResolution);
-            config.depth_mode = static_cast<k4a_depth_mode_t>(this->DepthMode);
+            typedef decltype(config.camera_fps) F;
+            typedef decltype(config.color_resolution) R;
+            typedef decltype(config.depth_mode) D;
+            config.camera_fps = static_cast<F>(this->FrameRate);
+            config.color_format = ColourFormat;
+            config.color_resolution = static_cast<R>(this->ColourResolution);
+            config.depth_mode = static_cast<D>(this->DepthMode);
             config.disable_streaming_indicator
                 = this->DisableStreamingIndicator;
-            config.synchronized_images_only = true;
+            config.synchronized_images_only = this->SynchronisedImagesOnly;
             config.wired_sync_mode = K4A_WIRED_SYNC_MODE_STANDALONE;
 
             this->_device.start_cameras(&config);
@@ -216,10 +218,19 @@ bool UAzureKinectDevice::Start(void) {
             this->_transform = k4a::transformation(this->_calibration);
         }
 
-        if (this->SkeletonTracking) {
+        if (this->SkeletonTracking != EKinectTrackerProcessing::DISABLED) {
             auto config = K4ABT_TRACKER_CONFIG_DEFAULT;
-            config.sensor_orientation = static_cast<k4abt_sensor_orientation_t>(
-                this->SensorOrientation);
+            typedef decltype(config.sensor_orientation) O;
+            typedef decltype(config.processing_mode) P;
+            config.sensor_orientation = static_cast<O>(this->SensorOrientation);
+            config.processing_mode = static_cast<P>(this->SkeletonTracking);
+
+            FPlatformMisc::SetEnvironmentVar(
+                TEXT("K4ABT_ENABLE_LOG_TO_A_FILE"),
+                TEXT("T:\\Programmcode\\AzKinectHack\\k4abt.log"));
+            FPlatformMisc::SetEnvironmentVar(
+                TEXT("K4ABT_LOG_LEVEL"),
+                TEXT("t"));
             this->_bodyTracker = k4abt::tracker::create(this->_calibration,
                 config);
         }
@@ -437,16 +448,16 @@ void UAzureKinectDevice::CaptureColourTexture(k4a::capture& capture) {
     if (this->Remapping == EKinectRemap::COLOUR_TO_DEPTH) {
         auto colour = capture.get_color_image();
         if (!colour) {
-            //UE_LOG(AzureKinectDeviceLog,
-            //    Warning,
-            //    TEXT("Azure Kinect colour capture is invalid."));
+            UE_LOG(AzureKinectDeviceLog,
+                Verbose,
+                TEXT("Azure Kinect colour capture is invalid."));
             return;
         }
 
         auto depth = capture.get_depth_image();
         if (!depth) {
             UE_LOG(AzureKinectDeviceLog,
-                Warning,
+                Verbose,
                 TEXT("Azure Kinect depth capture is invalid."));
             return;
         }
@@ -488,7 +499,7 @@ void UAzureKinectDevice::CaptureColourTexture(k4a::capture& capture) {
         auto colour = capture.get_color_image();
         if (!colour) {
             UE_LOG(AzureKinectDeviceLog,
-                Warning,
+                Verbose,
                 TEXT("Azure Kinect colour capture is invalid."));
             return;
         }
@@ -536,7 +547,7 @@ void UAzureKinectDevice::CaptureDepthTexture(k4a::capture& capture) {
         auto colour = capture.get_color_image();
         if (!colour) {
             UE_LOG(AzureKinectDeviceLog,
-                Warning,
+                Verbose,
                 TEXT("Azure Kinect colour capture is invalid."));
             return;
         }
@@ -544,7 +555,7 @@ void UAzureKinectDevice::CaptureDepthTexture(k4a::capture& capture) {
         auto depth = capture.get_depth_image();
         if (!depth) {
             UE_LOG(AzureKinectDeviceLog,
-                Warning,
+                Verbose,
                 TEXT("Azure Kinect depth capture is invalid."));
             return;
         }
@@ -584,7 +595,7 @@ void UAzureKinectDevice::CaptureDepthTexture(k4a::capture& capture) {
         auto depth = capture.get_depth_image();
         if (!depth) {
             UE_LOG(AzureKinectDeviceLog,
-                Warning,
+                Verbose,
                 TEXT("Azure Kinect depth capture is invalid."));
             return;
         }
@@ -646,7 +657,7 @@ void UAzureKinectDevice::CaptureInfraredTexture(k4a::capture& capture) {
     auto image = capture.get_ir_image();
     if (!image) {
         UE_LOG(AzureKinectDeviceLog,
-            Warning,
+            Verbose,
             TEXT("Azure Kinect infrared capture is invalid."));
         return;
     }
@@ -738,7 +749,8 @@ void UAzureKinectDevice::UpdateAsync(void) {
         this->CaptureInfraredTexture(capture);
     }
 
-    if (this->SkeletonTracking && this->_bodyTracker) {
+    if ((this->SkeletonTracking != EKinectTrackerProcessing::DISABLED)
+            && this->_bodyTracker) {
         this->UpdateSkeletons(capture);
     }
 }

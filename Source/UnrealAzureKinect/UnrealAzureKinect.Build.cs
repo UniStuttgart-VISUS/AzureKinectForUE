@@ -64,17 +64,32 @@ public class UnrealAzureKinect : ModuleRules {
             Path.Combine(bodySdkPath, "sdk", "windows-desktop", "amd64", "release", "lib", "k4abt.lib")
         ]);
 
-        var kinectDlls = new[] {
-            Path.Combine(sdkPath, "sdk", "windows-desktop", "amd64", "release", "bin", "depthengine_2_0.dll"),
-            Path.Combine(sdkPath, "sdk", "windows-desktop", "amd64", "release", "bin", "k4a.dll"),
-            Path.Combine(bodySdkPath, "sdk", "windows-desktop", "amd64", "release", "bin", "k4abt.dll")
-        };
 
-        foreach (var d in kinectDlls) {
+        var sdkBinaryDir = Path.Combine(sdkPath, "sdk", "windows-desktop", "amd64", "release", "bin");
+        var sdkBinaries = Directory.GetFiles(sdkBinaryDir, "*.dll");
+
+        foreach (var d in sdkBinaries) {
             System.Diagnostics.Debug.Assert(File.Exists(d));
             var f = Path.GetFileName(d);
             this.RuntimeDependencies.Add($"$(BinaryOutputDir)/{f}", d);
             this.PublicDelayLoadDLLs.Add(d);
+        }
+
+        var bodySdkBinaryDir = Path.Combine(bodySdkPath, "sdk", "windows-desktop", "amd64", "release", "bin");
+        var bodySdkBinaries = Directory.GetFiles(bodySdkBinaryDir, "*.dll");
+        var onnxModels = Directory.GetFiles(bodySdkBinaryDir, "*.onnx");
+
+        foreach (var d in bodySdkBinaries) {
+            System.Diagnostics.Debug.Assert(File.Exists(d));
+            var f = Path.GetFileName(d);
+            this.RuntimeDependencies.Add($"$(BinaryOutputDir)/{f}", d);
+            this.PublicDelayLoadDLLs.Add(d);
+        }
+
+        foreach (var d in onnxModels) {
+            System.Diagnostics.Debug.Assert(File.Exists(d));
+            var f = Path.GetFileName(d);
+            this.RuntimeDependencies.Add($"$(BinaryOutputDir)/{f}", d);
         }
 
         this.PrivateIncludePaths.AddRange([ "UnrealAzureKinect/Private" ]);
