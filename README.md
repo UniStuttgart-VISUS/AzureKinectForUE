@@ -10,3 +10,6 @@ This for of [Ayumu Nagamtsu' plugin für UE4](https://github.com/nama-gatsuo/Azu
     * Tested with Unreal Engine 5.6.1. May or may not work with previous versions.
 
 ## Usage
+* Install the prerequisites.
+* Clone the repository into the "Plugins" directory of your project.
+* Restart Unreal Engine and check the plugin list for "Azure Kinect for Unreal Engine 5".
