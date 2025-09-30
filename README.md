@@ -1,5 +1,5 @@
 # Azure Kinect for Unreal Engine
-This for of [Ayumu Nagamtsu' plugin für UE4](https://github.com/nama-gatsuo/AzureKinectForUE) enables using the Azure Kinect sensor in Unreal Engine 5.
+This for of [Ayumu Nagamtsu's plugin für UE4](https://github.com/nama-gatsuo/AzureKinectForUE) enables using the Azure Kinect sensor in Unreal Engine 5.
 
 ## Prerequisites
 * Platform: Win64
