@@ -437,9 +437,9 @@ void UAzureKinectDevice::CaptureColourTexture(k4a::capture& capture) {
     if (this->Remapping == EKinectRemap::COLOUR_TO_DEPTH) {
         auto colour = capture.get_color_image();
         if (!colour) {
-            UE_LOG(AzureKinectDeviceLog,
-                Warning,
-                TEXT("Azure Kinect colour capture is invalid."));
+            //UE_LOG(AzureKinectDeviceLog,
+            //    Warning,
+            //    TEXT("Azure Kinect colour capture is invalid."));
             return;
         }
 
@@ -549,8 +549,8 @@ void UAzureKinectDevice::CaptureDepthTexture(k4a::capture& capture) {
             return;
         }
 
-        width = depth.get_width_pixels();
-        height = depth.get_height_pixels();
+        width = colour.get_width_pixels();
+        height = colour.get_height_pixels();
 
         if ((width == 0) || (height == 0)) {
             UE_LOG(AzureKinectDeviceLog,
@@ -760,7 +760,6 @@ void UAzureKinectDevice::UpdateSkeletons(k4a::capture& capture) {
             return;
         }
 
-        
         if (!this->_bodyTracker.pop_result(&frame, this->_frameTime)) {
             UE_LOG(AzureKinectDeviceLog,
                 Warning,
