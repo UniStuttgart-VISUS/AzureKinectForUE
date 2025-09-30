@@ -15,7 +15,7 @@ DECLARE_LOG_CATEGORY_EXTERN(AzureKinectAnimNodeLog, Log, All);
  * 
  */
 USTRUCT(BlueprintInternalUseOnly)
-struct AZUREKINECT_API FAnimNode_AzureKinectPose : public FAnimNode_Base
+struct UNREALAZUREKINECT_API FAnimNode_AzureKinectPose : public FAnimNode_Base
 {
 	GENERATED_BODY()
 
