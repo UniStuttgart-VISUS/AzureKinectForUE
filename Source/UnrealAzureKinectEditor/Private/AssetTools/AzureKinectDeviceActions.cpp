@@ -1,8 +1,8 @@
-ï»¿// <copyright file="AzureKinectSkeleton.h" company="Visualisierungsinstitut der UniversitÃ¤t Stuttgart">
-// Copyright Â© 2025 Visualisierungsinstitut der UniversitÃ¤t Stuttgart.
+// <copyright file="AzureKinectDeviceActions.cpp" company="Visualisierungsinstitut der Universität Stuttgart">
+// Copyright © 2025 Visualisierungsinstitut der Universität Stuttgart.
 // Licensed under the MIT licence. See LICENCE file for details.
 // </copyright>
-// <author>Christoph MÃ¼ller</author>
+// <author>Christoph Müller</author>
 
 // Copyright 2021 Ayumu Nagamtsu
 //
@@ -24,23 +24,40 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#pragma once
+#include "AzureKinectDeviceActions.h"
 
-#include "CoreMinimal.h"
-
-#include "AzureKinectSkeleton.generated.h"
+#include "AzureKinectDevice.h"
 
 
-/// <summary>
-/// Represents a tracked skeleton.
-/// </summary>
-USTRUCT(BlueprintType)
-struct FAzureKinectSkeleton {
-    GENERATED_BODY()
+/*
+ * FAzureKinectDeviceActions::GetCategories
+ */
+uint32 FAzureKinectDeviceActions::GetCategories(void) noexcept {
+    return EAssetTypeCategories::Media;
+}
 
-    UPROPERTY(BlueprintReadWrite)
-    int32 ID;
 
-    UPROPERTY(BlueprintReadWrite)
-    TArray<FTransform> Joints;
-};
+/*
+ * FAzureKinectDeviceActions::GetName
+ */
+FText FAzureKinectDeviceActions::GetName(void) const {
+    return NSLOCTEXT("AzureKinectDeviceActions",
+        "AssetTypeActions_AzureKinectDevice",
+        "Azure Kinect Device");
+}
+
+
+/*
+ * FAzureKinectDeviceActions::GetSupportedClass
+ */
+UClass *FAzureKinectDeviceActions::GetSupportedClass(void) const {
+    return UAzureKinectDevice::StaticClass();
+}
+
+
+/*
+ * FAzureKinectDeviceActions::GetTypeColor
+ */
+FColor FAzureKinectDeviceActions::GetTypeColor(void) const {
+    return FColor::White;
+}

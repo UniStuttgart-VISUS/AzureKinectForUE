@@ -1,4 +1,4 @@
-﻿// <copyright file="AzureKinectSkeleton.h" company="Visualisierungsinstitut der Universität Stuttgart">
+﻿// <copyright file="AzureKinectDeviceFactory.h" company="Visualisierungsinstitut der Universität Stuttgart">
 // Copyright © 2025 Visualisierungsinstitut der Universität Stuttgart.
 // Licensed under the MIT licence. See LICENCE file for details.
 // </copyright>
@@ -26,21 +26,31 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "Factories/Factory.h"
 
-#include "AzureKinectSkeleton.generated.h"
+#include "UObject/ObjectMacros.h"
+
+#include "AzureKinectDeviceFactory.generated.h"
 
 
 /// <summary>
-/// Represents a tracked skeleton.
+/// Generates <see cref="UAzureKinectDevice"/> objects.
 /// </summary>
-USTRUCT(BlueprintType)
-struct FAzureKinectSkeleton {
-    GENERATED_BODY()
+UCLASS(hidecategories = Object)
+class UAzureKinectDeviceFactory : public UFactory {
+    GENERATED_UCLASS_BODY()
 
-    UPROPERTY(BlueprintReadWrite)
-    int32 ID;
+public:
 
-    UPROPERTY(BlueprintReadWrite)
-    TArray<FTransform> Joints;
+    virtual UObject *FactoryCreateNew(
+        UClass *inClass,
+        UObject *inParent,
+        FName inName,
+        EObjectFlags flags,
+        UObject *context,
+        FFeedbackContext *warn) override;
+
+    virtual uint32 GetMenuCategories(void) const override;
+
+    virtual bool ShouldShowInNewMenu(void) const override;
 };

@@ -1,8 +1,8 @@
-ï»¿// <copyright file="AzureKinectSkeleton.h" company="Visualisierungsinstitut der UniversitÃ¤t Stuttgart">
-// Copyright Â© 2025 Visualisierungsinstitut der UniversitÃ¤t Stuttgart.
+// <copyright file="AzureKinectDeviceCustomization.h" company="Visualisierungsinstitut der Universität Stuttgart">
+// Copyright © 2025 Visualisierungsinstitut der Universität Stuttgart.
 // Licensed under the MIT licence. See LICENCE file for details.
 // </copyright>
-// <author>Christoph MÃ¼ller</author>
+// <author>Christoph Müller</author>
 
 // Copyright 2021 Ayumu Nagamtsu
 //
@@ -27,20 +27,26 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "IDetailCustomization.h"
+#include "AzureKinectDevice.h"
 
-#include "AzureKinectSkeleton.generated.h"
 
+class FAzureKinectDeviceCustomization : public IDetailCustomization {
 
-/// <summary>
-/// Represents a tracked skeleton.
-/// </summary>
-USTRUCT(BlueprintType)
-struct FAzureKinectSkeleton {
-    GENERATED_BODY()
+public:
 
-    UPROPERTY(BlueprintReadWrite)
-    int32 ID;
+    static TSharedRef<IDetailCustomization> MakeInstance(void);
 
-    UPROPERTY(BlueprintReadWrite)
-    TArray<FTransform> Joints;
+    virtual void CustomizeDetails(IDetailLayoutBuilder& builder) override;
+
+private:
+
+    FText GetSelectionLabel(void) const;
+
+    TSharedRef<SWidget> MakeWidgetForOption(TSharedPtr<FString> option);
+
+    void OnSelectionChanged(TSharedPtr<FString> selection, ESelectInfo::Type);
+
+    TWeakObjectPtr<UAzureKinectDevice> _device;
+    TSharedPtr<FString> _selection;
 };

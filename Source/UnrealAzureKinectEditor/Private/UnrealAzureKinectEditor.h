@@ -1,8 +1,8 @@
-ï»¿// <copyright file="AzureKinectSkeleton.h" company="Visualisierungsinstitut der UniversitÃ¤t Stuttgart">
-// Copyright Â© 2025 Visualisierungsinstitut der UniversitÃ¤t Stuttgart.
+// <copyright file="UnrealAzureKinectEditor.h" company="Visualisierungsinstitut der Universität Stuttgart">
+// Copyright © 2025 Visualisierungsinstitut der Universität Stuttgart.
 // Licensed under the MIT licence. See LICENCE file for details.
 // </copyright>
-// <author>Christoph MÃ¼ller</author>
+// <author>Christoph Müller</author>
 
 // Copyright 2021 Ayumu Nagamtsu
 //
@@ -26,21 +26,28 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "Modules/ModuleManager.h"
 
-#include "AzureKinectSkeleton.generated.h"
+#include "IAssetTypeActions.h"
 
 
-/// <summary>
-/// Represents a tracked skeleton.
-/// </summary>
-USTRUCT(BlueprintType)
-struct FAzureKinectSkeleton {
-    GENERATED_BODY()
+class FUnrealAzureKinectEditorModule : public IModuleInterface {
 
-    UPROPERTY(BlueprintReadWrite)
-    int32 ID;
+public:
 
-    UPROPERTY(BlueprintReadWrite)
-    TArray<FTransform> Joints;
+    virtual void ShutdownModule(void) override;
+
+    virtual void StartupModule(void) override;
+
+protected:
+
+    void RegisterAssetTools(void);
+    void RegisterCustomizations(void);
+    void UnregisterAssetTools(void);
+    void UnregisterCustomizations(void);
+
+private:
+
+    FName _deviceName;
+    TArray<TSharedRef<IAssetTypeActions>> _registeredActions;
 };

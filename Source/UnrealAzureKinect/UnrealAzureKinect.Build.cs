@@ -1,4 +1,8 @@
-// Some copyright should be here...
+// <copyright file="UnrealAzureKinect.Build.cs" company="Visualisierungsinstitut der Universität Stuttgart">
+// Copyright © 2025 Visualisierungsinstitut der Universität Stuttgart.
+// Licensed under the MIT licence. See LICENCE file for details.
+// </copyright>
+// <author>Christoph Müller</author>
 
 using Microsoft.Extensions.Logging;
 using System;
@@ -14,7 +18,7 @@ public class UnrealAzureKinect : ModuleRules {
     public const string SdkEnvironmentVariable = "AZUREKINECT_SDK";
     public const string BodySdkEnvironmentVariable = "AZUREKINECT_BODY_SDK";
 
-    public UnrealAzureKinect(ReadOnlyTargetRules Target) : base(Target) {
+    public UnrealAzureKinect(ReadOnlyTargetRules target) : base(target) {
         this.PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         var sdkPath = Environment.GetEnvironmentVariable(SdkEnvironmentVariable);

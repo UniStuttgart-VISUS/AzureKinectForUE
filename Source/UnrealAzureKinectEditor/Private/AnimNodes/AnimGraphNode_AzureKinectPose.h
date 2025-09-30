@@ -1,4 +1,4 @@
-﻿// <copyright file="AzureKinectSkeleton.h" company="Visualisierungsinstitut der Universität Stuttgart">
+﻿// <copyright file="AnimNode_AzureKinectPose.h" company="Visualisierungsinstitut der Universität Stuttgart">
 // Copyright © 2025 Visualisierungsinstitut der Universität Stuttgart.
 // Licensed under the MIT licence. See LICENCE file for details.
 // </copyright>
@@ -26,21 +26,32 @@
 
 #pragma once
 
+#include "AnimGraphNode_Base.h"
+#include "AnimNodeEditModes.h"
+#include "AnimNode_AzureKinectPose.h"
 #include "CoreMinimal.h"
 
-#include "AzureKinectSkeleton.generated.h"
+#include "EdGraph/EdGraphNodeUtils.h"
+
+#include "AnimGraphNode_AzureKinectPose.generated.h"
 
 
-/// <summary>
-/// Represents a tracked skeleton.
-/// </summary>
-USTRUCT(BlueprintType)
-struct FAzureKinectSkeleton {
+UCLASS(meta = (Kerwords = "Azure Kinect"))
+class UAnimGraphNode_AzureKinectPose : public UAnimGraphNode_Base {
     GENERATED_BODY()
 
-    UPROPERTY(BlueprintReadWrite)
-    int32 ID;
+public:
 
-    UPROPERTY(BlueprintReadWrite)
-    TArray<FTransform> Joints;
+    UPROPERTY(EditAnywhere, Category = "Settings")
+    FAnimNode_AzureKinectPose Node;
+
+    virtual void CreateOutputPins(void) override;
+
+    virtual FString GetNodeCategory(void) const override;
+
+    virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
+
+    virtual FLinearColor GetNodeTitleColor(void) const override;
+
+    virtual FText GetTooltipText(void) const override;
 };

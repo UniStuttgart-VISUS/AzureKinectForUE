@@ -1,4 +1,4 @@
-﻿// <copyright file="AzureKinectSkeleton.h" company="Visualisierungsinstitut der Universität Stuttgart">
+﻿// <copyright file="AzureKinectDeviceActions.h" company="Visualisierungsinstitut der Universität Stuttgart">
 // Copyright © 2025 Visualisierungsinstitut der Universität Stuttgart.
 // Licensed under the MIT licence. See LICENCE file for details.
 // </copyright>
@@ -26,21 +26,19 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-
-#include "AzureKinectSkeleton.generated.h"
+#include "AssetTypeActions_Base.h"
 
 
-/// <summary>
-/// Represents a tracked skeleton.
-/// </summary>
-USTRUCT(BlueprintType)
-struct FAzureKinectSkeleton {
-    GENERATED_BODY()
+class FAzureKinectDeviceActions final : public FAssetTypeActions_Base {
 
-    UPROPERTY(BlueprintReadWrite)
-    int32 ID;
+public:
 
-    UPROPERTY(BlueprintReadWrite)
-    TArray<FTransform> Joints;
+    virtual uint32 GetCategories(void) noexcept override;
+
+    virtual FText GetName(void) const override;
+
+    virtual UClass *GetSupportedClass(void) const override;
+
+    virtual FColor GetTypeColor(void) const override;
+
 };

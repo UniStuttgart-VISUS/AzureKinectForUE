@@ -1,24 +1,30 @@
 {
-	"FileVersion": 3,
-	"Version": 1,
-	"VersionName": "1.0",
-	"FriendlyName": "UnrealAzureKinect",
-	"Description": "",
-	"Category": "Other",
-	"CreatedBy": "",
-	"CreatedByURL": "",
-	"DocsURL": "",
-	"MarketplaceURL": "",
-	"SupportURL": "",
-	"CanContainContent": true,
-	"IsBetaVersion": false,
-	"IsExperimentalVersion": false,
-	"Installed": false,
-	"Modules": [
-		{
-			"Name": "UnrealAzureKinect",
-			"Type": "Runtime",
-			"LoadingPhase": "PreLoadingScreen"
-		}
-	]
+    "FileVersion": 3,
+    "Version": 1,
+    "VersionName": "1.0",
+    "FriendlyName": "Azure Kinect for Unreal Engine 5",
+    "Description": "Provides support for using Azure Kinect cameras in Unreal Engine",
+    "Category": "Virtual Production",
+    "CreatedBy": "",
+    "CreatedByURL": "",
+    "DocsURL": "",
+    "MarketplaceURL": "",
+    "SupportURL": "",
+    "CanContainContent": true,
+    "IsBetaVersion": true,
+    "IsExperimentalVersion": false,
+    "Installed": false,
+    "SupportedTargetPlatforms": [ "Win64" ],
+    "Modules": [
+        {
+            "Name": "UnrealAzureKinect",
+            "Type": "Runtime",
+            "LoadingPhase": "PreLoadingScreen"
+        },
+        {
+            "Name": "UnrealAzureKinectEditor",
+            "Type": "UncookedOnly",
+            "LoadingPhase": "Default"
+        }
+    ]
 }
