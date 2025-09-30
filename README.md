@@ -13,3 +13,13 @@ This for of [Ayumu Nagamtsu' plugin für UE4](https://github.com/nama-gatsuo/Azu
 * Install the prerequisites.
 * Clone the repository into the "Plugins" directory of your project.
 * Restart Unreal Engine and check the plugin list for "Azure Kinect for Unreal Engine 5".
+* The [`UAzureKinectDevice`](Source/UnrealAzureKinect/Public/AzureKinectDevice.h) is the core class implementing all the stuff.
+* The `BP_AzureKinectActor` in the plugin's content shows how to put everything together. It uses a default instance of `UAzureKinectDevice` called `DefaultAzureKinectDevice`, also located in the plugin's content folder.
+* You can double-click the `DefaultAzureKinectDevice` to test the setup:
+   * Attach the Azure Kinect via USB.
+   * Click the "Refresh" button at the very top of the device configuration. This should populate the "Device Selection" list below with the serial number of your device.
+   * Select the device and configure its behaviour.
+   * Click "Start" in the "Camera control" group at the very bottom.
+   * The "Start" button should change to a "Stop" button, and you should start seeing updates in the previews of the textures configured above.
+   * If nothing happens, that is if the "Start" button remains, the device was not found or could not be started. In this case, make sure that you have selected an existing device in the dropdown at the top and check the "Output Log" for messages.
+  
