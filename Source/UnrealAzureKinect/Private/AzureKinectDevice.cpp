@@ -54,6 +54,7 @@ UAzureKinectDevice::UAzureKinectDevice(void)
         DepthMode(EKinectDepthMode::NFOV_UNBINNED),
         DepthTexture(nullptr),
         DeviceIndex(-1),
+        DisableStreamingIndicator(false),
         FrameRate(EKinectFps::PER_SECOND_30),
         InfraredTexture(nullptr),
         Remapping(EKinectRemap::DEPTH_TO_COLOUR),
@@ -151,8 +152,7 @@ int32 UAzureKinectDevice::GetTrackedSkeletons(void) const {
 int32 UAzureKinectDevice::RefreshDevices(void) {
     const auto retval = CountDevices();
 
-    this->Devices.Empty(retval + 1);
-    this->Devices.Add(MakeShared<FString>("None"));
+    this->Devices.Empty(retval);
 
     for (int32 i = 0; i < retval; ++i) {
         try {
@@ -205,6 +205,8 @@ bool UAzureKinectDevice::Start(void) {
             config.color_resolution
                 = static_cast<k4a_color_resolution_t>(this->ColourResolution);
             config.depth_mode = static_cast<k4a_depth_mode_t>(this->DepthMode);
+            config.disable_streaming_indicator
+                = this->DisableStreamingIndicator;
             config.synchronized_images_only = true;
             config.wired_sync_mode = K4A_WIRED_SYNC_MODE_STANDALONE;
 
@@ -356,26 +358,25 @@ void UAzureKinectDevice::Update(UTextureRenderTarget2D *rt,
     assert(data);
     assert(data.Num() == height * pitch);
 
-    auto res = rt->GameThread_GetRenderTargetResource();
-    if (!res) {
-        UE_LOG(AzureKinectDeviceLog,
-            Warning,
-            TEXT("Failed to obtain resource from render target."));
-        return;
-    }
-
     FUpdateTextureRegion2D region(0, 0, 0, 0, width, height);
 
     ENQUEUE_RENDER_COMMAND(UpdateRTCommand)(
-        [res, d = MoveTemp(data), region, pitch](
+        [rt, d = MoveTemp(data), region, pitch](
                 FRHICommandListImmediate& cmdList) {
-            GDynamicRHI->RHIUpdateTexture2D(
-                cmdList,
-                res->GetRenderTargetTexture(),
-                0,
-                region,
-                pitch,
-                d.GetData());
+            auto res = rt->GetRenderTargetResource();
+            if (res) {
+                GDynamicRHI->RHIUpdateTexture2D(
+                    cmdList,
+                    res->GetRenderTargetTexture(),
+                    0,
+                    region,
+                    pitch,
+                    d.GetData());
+            } else {
+                UE_LOG(AzureKinectDeviceLog,
+                    Warning,
+                    TEXT("Failed to obtain resource from render target."));
+            }
         });
 }
 
@@ -611,9 +612,9 @@ void UAzureKinectDevice::CaptureDepthTexture(k4a::capture& capture) {
         TArray<uint8> data;
         data.Reset(width * height * 4);
 
-        for (int hi = 0; hi < height; ++hi) {
-            for (int wi = 0; wi < width; ++wi) {
-                int index = hi * width + wi;
+        for (int h = 0; h < height; ++h) {
+            for (int w = 0; w < width; ++w) {
+                int index = h * width + w;
                 uint16 r = source[index * 2];
                 uint16 g = source[index * 2 + 1];
                 uint16 sample = g << 8 | r;
@@ -638,51 +639,60 @@ void UAzureKinectDevice::CaptureDepthTexture(k4a::capture& capture) {
  * UAzureKinectDevice::CaptureInfraredTexture
  */
 void UAzureKinectDevice::CaptureInfraredTexture(k4a::capture& capture) {
-    //const k4a::image &InflaredCapture = this->_capture.get_ir_image();
-    //if (!InflaredCapture.is_valid()) return;
+    assert(capture);
+    int32 width = 0;
+    int32 height = 0;
 
-    //int32 width = InflaredCapture.get_width_pixels(), height = InflaredCapture.get_height_pixels();
-    //if (width == 0 || height == 0) return;
+    auto image = capture.get_ir_image();
+    if (!image) {
+        UE_LOG(AzureKinectDeviceLog,
+            Warning,
+            TEXT("Azure Kinect infrared capture is invalid."));
+        return;
+    }
 
-    //if (InflaredTexture->GetSurfacewidth() != width || InflaredTexture->GetSurfacewidth() != height) {
-    //    InflaredTexture->InitCustomFormat(width, height, EPixelFormat::PF_R8G8B8A8, true);
-    //    InflaredTexture->RenderTargetFormat = ETextureRenderTargetFormat::RTF_RGBA8;
-    //    InflaredTexture->UpdateResource();
-    //} else {
-    //    const uint8 *S = InflaredCapture.get_buffer();
-    //    TArray<uint8> SrcData;
-    //    SrcData.Reset(width * height * 4);
-    //    for (int hi = 0; hi < height; hi++) {
-    //        for (int wi = 0; wi < width; wi++) {
-    //            int index = hi * width + wi;
+    width = image.get_width_pixels();
+    height = image.get_height_pixels();
 
-    //            if (S[index * 2] + S[index * 2 + 1] > 0) {
-    //                SrcData.Push(S[index * 2]);
-    //                SrcData.Push(S[index * 2 + 1]);
-    //                SrcData.Push(0x00);
-    //                SrcData.Push(0xff);
-    //            } else {
-    //                SrcData.Push(0x00);
-    //                SrcData.Push(0x00);
-    //                SrcData.Push(0xff);
-    //                SrcData.Push(0xff);
-    //            }
-    //        }
-    //    }
+    if ((width == 0) || (height == 0)) {
+        UE_LOG(AzureKinectDeviceLog,
+            Warning,
+            TEXT("Azure Kinect infrared image is empty."));
+        return;
+    }
 
-    //    FTextureResource *TextureResource = InflaredTexture->Resource;
-    //    auto Region = FUpdateTextureRegion2D(0, 0, 0, 0, width, height);
+    if (!HasSize(this->InfraredTexture, width, height)) {
+        this->InfraredTexture->InitCustomFormat(width, height,
+            EPixelFormat::PF_R8G8B8A8, true);
+        this->InfraredTexture->RenderTargetFormat
+            = ETextureRenderTargetFormat::RTF_RGBA8;
+        this->InfraredTexture->UpdateResource();
 
-    //    ENQUEUE_RENDER_COMMAND(UpdateTextureData)(
-    //        [TextureResource, Region, SrcData](FRHICommandListImmediate &RHICmdList) {
-    //        FTexture2DRHIRef Texture2D = TextureResource->TextureRHI ? TextureResource->TextureRHI->GetTexture2D() : nullptr;
-    //        if (!Texture2D) {
-    //            return;
-    //        }
+    } else {
+        auto source = image.get_buffer();
+        TArray<uint8> data;
+        data.Reset(width * height * 4);
 
-    //        RHIUpdateTexture2D(Texture2D, 0, Region, 4 * Region.width, SrcData.GetData());
-    //    });
-    //}
+        for (int h = 0; h < height; ++h) {
+            for (int w = 0; w < width; ++w) {
+                int index = h * width + w;
+                uint16 r = source[index * 2];
+                uint16 g = source[index * 2 + 1];
+                uint16 sample = g << 8 | r;
+
+                data.Push(source[index * 2]);
+                data.Push(source[index * 2 + 1]);
+                data.Push(sample > 0 ? 0x00 : 0xFF);
+                data.Push(0xFF);
+            }
+        }
+
+        Update(this->InfraredTexture,
+            MoveTemp(data),
+            width,
+            height,
+            4 * width);
+    }
 }
 
 

@@ -96,6 +96,9 @@ public:
     TArray<TSharedPtr<FString>> Devices;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Device settings")
+    bool DisableStreamingIndicator;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Device settings")
     EKinectFps FrameRate;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "I/O")

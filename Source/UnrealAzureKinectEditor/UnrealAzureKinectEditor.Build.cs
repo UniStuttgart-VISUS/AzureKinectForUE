@@ -4,14 +4,13 @@
 // </copyright>
 // <author>Christoph Müller</author>
 
-using System.IO;
 using UnrealBuildTool;
 
 
 public class UnrealAzureKinectEditor : ModuleRules {
 
     public UnrealAzureKinectEditor(ReadOnlyTargetRules target) : base(target) {
-        this.PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        this.PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         this.PrivateIncludePaths.AddRange([
             "UnrealAzureKinectEditor/Private",

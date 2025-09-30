@@ -54,25 +54,45 @@ void FAzureKinectDeviceCustomization::CustomizeDetails(IDetailLayoutBuilder& bui
 
     if (objects.Num() == 1) {
         this->_device = Cast<UAzureKinectDevice>(objects[0].Get());
-
-        auto &catConfig = builder.EditCategory("Config");
-        auto &catIO = builder.EditCategory("I/O");
-        auto deviceOpen = TAttribute<bool>::Create(
-            TAttribute<bool>::FGetter::CreateLambda([this](void) {
-            return this->_device->IsOpen();
-        }));
-
         this->_selection = this->_device->Devices[0];
 
-        catConfig.AddCustomRow(LOCTEXT("DeviceSelectionFilterString", "Device Selection"))
+        // A callback that determines whether the Azure Kinect device is not
+        // open and can be configured.
+        const auto deviceNotOpen = TAttribute<bool>::Create(
+            TAttribute<bool>::FGetter::CreateLambda([this](void) {
+            return !this->_device->IsOpen();
+        }));
+
+        auto& catConfig = builder.EditCategory("Configuration");
+        catConfig.AddCustomRow(LOCTEXT("RowRefresh", "Device list refresh"))
             .NameContent()
             [
-                SNew(STextBlock).Text(LOCTEXT("DeviceSelectionLabel", "Device Selection"))
+                SNew(STextBlock).Text(LOCTEXT("LabelDeviceList", "Device list"))
+            ]
+            .ValueContent()
+            [
+                SNew(SHorizontalBox)
+                    + SHorizontalBox::Slot()
+                    .Padding(FMargin(0.0f, 2.0f, 0.0f, 2.0f))
+                    .AutoWidth()
+                    [
+                        SNew(SButton)
+                            .Text(LOCTEXT("LoadButtonText", "Refresh"))
+                            .Visibility_Lambda([this](void) { return this->_device->IsOpen() ? EVisibility::Collapsed : EVisibility::Visible; })
+                            .OnClicked_Lambda([this](void) { this->_device->RefreshDevices(); return FReply::Handled(); })
+                    ]
+            ];
+
+        catConfig.AddCustomRow(LOCTEXT("RowSelection", "Device selection"))
+            .NameContent()
+            [
+                SNew(STextBlock)
+                    .Text(LOCTEXT("LabelDeviceSelection", "Device Selection"))
             ]
             .ValueContent()
             [
                 SNew(SComboBox<TSharedPtr<FString>>)
-                    .IsEnabled(deviceOpen)
+                    .IsEnabled(deviceNotOpen)
                     .OptionsSource(&(this->_device->Devices))
                     .OnSelectionChanged_Raw(this, &FAzureKinectDeviceCustomization::OnSelectionChanged)
                     .OnGenerateWidget_Raw(this, &FAzureKinectDeviceCustomization::MakeWidgetForOption)
@@ -82,50 +102,38 @@ void FAzureKinectDeviceCustomization::CustomizeDetails(IDetailLayoutBuilder& bui
                     ]
             ];
 
-        auto DepthMode = builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, DepthMode));
-        auto ColorMode = builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, ColourResolution));
-        auto Fps = builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, FrameRate));
-        auto SensorOrientation = builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, SensorOrientation));
-        auto RemapMode = builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, Remapping));
-        auto SkeletonTracking = builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, SkeletonTracking));
+        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, ColourResolution)))
+            .IsEnabled(deviceNotOpen);
 
-        catConfig.AddProperty(DepthMode)
-            .IsEnabled(deviceOpen);
+        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, DepthMode)))
+            .IsEnabled(deviceNotOpen);
 
-        catConfig.AddProperty(ColorMode)
-            .IsEnabled(deviceOpen);
+        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, FrameRate)))
+            .IsEnabled(deviceNotOpen);
 
-        catConfig.AddProperty(Fps)
-            .IsEnabled(deviceOpen);
+        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, SensorOrientation)))
+            .IsEnabled(deviceNotOpen);
 
-        catConfig.AddProperty(SensorOrientation)
-            .IsEnabled(deviceOpen);
+        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, Remapping)))
+            .IsEnabled(deviceNotOpen);
 
-        catConfig.AddProperty(RemapMode)
-            .IsEnabled(deviceOpen);
+        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, DisableStreamingIndicator)))
+            .IsEnabled(deviceNotOpen);
 
-        catConfig.AddProperty(SkeletonTracking)
-            .IsEnabled(deviceOpen);
+        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, SkeletonTracking)))
+            .IsEnabled(deviceNotOpen);
 
-        catIO.AddCustomRow(LOCTEXT("ButtonFilterString", "Function Buttons"))
+        auto& catControl = builder.EditCategory("Camera control");
+        catControl.AddCustomRow(LOCTEXT("RowControl", "Camera controls"))
             .NameContent()
             [
-                SNew(STextBlock).Text(LOCTEXT("ExecutionLabel", "Execution"))
+                SNew(STextBlock).Text(LOCTEXT("LabelControl", "Camera control"))
             ]
             .ValueContent()
             [
                 SNew(SHorizontalBox)
                     + SHorizontalBox::Slot()
-                    .Padding(FMargin(0.f, 2.f, 10.f, 2.f))
-                    .AutoWidth()
-                    [
-                        SNew(SButton)
-                            .Text(LOCTEXT("LoadButtonText", "Refresh"))
-                            .Visibility_Lambda([this](void) { return this->_device->IsOpen() ? EVisibility::Collapsed : EVisibility::Visible; })
-                            .OnClicked_Lambda([this](void) { this->_device->RefreshDevices(); return FReply::Handled(); })
-                    ]
-                    + SHorizontalBox::Slot()
-                    .Padding(FMargin(0.f, 2.f, 10.0f, 2.f))
+                    .Padding(FMargin(0.0f, 2.0f, 0.0f, 2.0f))
                     .AutoWidth()
                     [
                         SNew(SButton)
@@ -134,7 +142,7 @@ void FAzureKinectDeviceCustomization::CustomizeDetails(IDetailLayoutBuilder& bui
                             .OnClicked_Lambda([this](void) { this->_device->Start(); return FReply::Handled(); })
                     ]
                     + SHorizontalBox::Slot()
-                    .Padding(FMargin(0.f, 0, 10.f, 2.f))
+                    .Padding(FMargin(0.0f, 0.2f, 0.0f, 2.0f))
                     .AutoWidth()
                     [
                         SNew(SButton)
