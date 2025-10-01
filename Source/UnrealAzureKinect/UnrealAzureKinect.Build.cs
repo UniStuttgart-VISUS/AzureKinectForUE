@@ -70,7 +70,7 @@ public class UnrealAzureKinect : ModuleRules {
         var bodySdkBinaryDir = Path.Combine(bodySdkPath, "sdk", "windows-desktop", "amd64", "release", "bin");
         var bodySdkBinaries = Directory.GetFiles(bodySdkBinaryDir, "*.dll");
         var onnxModels = Directory.GetFiles(bodySdkBinaryDir, "*.onnx");
-        // A4BT depends on cudnn and several other CUDA libraries. It will not
+        // A4KBT depends on cudnn and several other CUDA libraries. It will not
         // start even in DirectML mode if these libraries are not found (the
         // library explicitly checks for them and fails to intialise).
         // Therefore, we copy them from the Body SDK tools such that we do not

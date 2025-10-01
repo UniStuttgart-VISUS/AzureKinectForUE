@@ -63,11 +63,12 @@ void FAzureKinectDeviceCustomization::CustomizeDetails(IDetailLayoutBuilder& bui
             return !this->_device->IsOpen();
         }));
 
-        auto& catConfig = builder.EditCategory("Configuration");
-        catConfig.AddCustomRow(LOCTEXT("RowRefresh", "Device list refresh"))
+        auto& catDevice = builder.EditCategory("Device");
+        catDevice.AddCustomRow(LOCTEXT("RowRefresh", "Device list refresh"))
             .NameContent()
             [
-                SNew(STextBlock).Text(LOCTEXT("LabelDeviceList", "Device list"))
+                SNew(STextBlock)
+                    .Text(LOCTEXT("LabelDeviceList", "Device list"))
             ]
             .ValueContent()
             [
@@ -82,12 +83,11 @@ void FAzureKinectDeviceCustomization::CustomizeDetails(IDetailLayoutBuilder& bui
                             .OnClicked_Lambda([this](void) { this->_device->RefreshDevices(); return FReply::Handled(); })
                     ]
             ];
-
-        catConfig.AddCustomRow(LOCTEXT("RowSelection", "Device selection"))
+        catDevice.AddCustomRow(LOCTEXT("RowSelection", "Device selection"))
             .NameContent()
             [
                 SNew(STextBlock)
-                    .Text(LOCTEXT("LabelDeviceSelection", "Device Selection"))
+                    .Text(LOCTEXT("LabelDeviceSelection", "Selected device"))
             ]
             .ValueContent()
             [
@@ -101,33 +101,10 @@ void FAzureKinectDeviceCustomization::CustomizeDetails(IDetailLayoutBuilder& bui
                         SNew(STextBlock).Text(this, &FAzureKinectDeviceCustomization::GetSelectionLabel)
                     ]
             ];
-
-        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, ColourResolution)))
-            .IsEnabled(deviceNotOpen);
-
-        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, DepthMode)))
-            .IsEnabled(deviceNotOpen);
-
-        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, FrameRate)))
-            .IsEnabled(deviceNotOpen);
-
-        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, SensorOrientation)))
-            .IsEnabled(deviceNotOpen);
-
-        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, Remapping)))
-            .IsEnabled(deviceNotOpen);
-
-        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, DisableStreamingIndicator)))
-            .IsEnabled(deviceNotOpen);
-
-        catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, SkeletonTracking)))
-            .IsEnabled(deviceNotOpen);
-
-        auto& catControl = builder.EditCategory("Camera control");
-        catControl.AddCustomRow(LOCTEXT("RowControl", "Camera controls"))
+        catDevice.AddCustomRow(LOCTEXT("RowControl", "Camera control"))
             .NameContent()
             [
-                SNew(STextBlock).Text(LOCTEXT("LabelControl", "Camera control"))
+                SNew(STextBlock).Text(LOCTEXT("LabelControl", "Device state"))
             ]
             .ValueContent()
             [
@@ -151,6 +128,30 @@ void FAzureKinectDeviceCustomization::CustomizeDetails(IDetailLayoutBuilder& bui
                             .OnClicked_Lambda([this](void) { this->_device->Stop(); return FReply::Handled(); })
                     ]
             ];
+
+        //catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, ColourResolution)))
+        //    .IsEnabled(deviceNotOpen);
+
+        //catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, DepthMode)))
+        //    .IsEnabled(deviceNotOpen);
+
+        //catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, FrameRate)))
+        //    .IsEnabled(deviceNotOpen);
+
+        //catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, SensorOrientation)))
+        //    .IsEnabled(deviceNotOpen);
+
+        //catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, Remapping)))
+        //    .IsEnabled(deviceNotOpen);
+
+        //catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, DisableStreamingIndicator)))
+        //    .IsEnabled(deviceNotOpen);
+
+        //catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, SynchronisedImagesOnly)))
+        //    .IsEnabled(deviceNotOpen);
+
+        //catConfig.AddProperty(builder.GetProperty(GET_MEMBER_NAME_CHECKED(UAzureKinectDevice, SkeletonTracking)))
+        //    .IsEnabled(deviceNotOpen);
     }
 }
 
