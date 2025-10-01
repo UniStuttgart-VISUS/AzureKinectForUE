@@ -23,3 +23,5 @@ This for of [Ayumu Nagamtsu's plugin für UE4](https://github.com/nama-gatsuo/Az
    * The "Start" button should change to a "Stop" button, and you should start seeing updates in the previews of the textures configured above.
    * If nothing happens, that is if the "Start" button remains, the device was not found or could not be started. In this case, make sure that you have selected an existing device in the dropdown at the top and check the "Output Log" for messages.
   
+## Debugging
+Logging can be enabled for the Azure Kinect SDK by setting the [`K4A_ENABLE_TO_TO_A_FILE`](https://learn.microsoft.com/en-us/previous-versions/azure/kinect-dk/troubleshooting) environment variable and setting the [`K4A_LOG_LEVEL`](https://learn.microsoft.com/en-us/previous-versions/azure/kinect-dk/troubleshooting) variable to one of 'c', 'e', 'w', 'i' or 't'. There are similar, but [undocumented](https://github.com/microsoft/Azure-Kinect-Sensor-SDK/issues/709) variables `K4ABT_ENABLE_LOG_TO_A_FILE`and `K4ABT_LOG_LEVEL` for the body tracking SDK.

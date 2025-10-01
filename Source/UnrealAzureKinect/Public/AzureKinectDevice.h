@@ -185,6 +185,8 @@ public:
 
 private:
 
+    static FString GetPluginLocation(void);
+
     static inline bool HasSize(const UTextureRenderTarget2D *texture,
             const int32 width,
             const int32 height) noexcept {

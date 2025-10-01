@@ -28,6 +28,10 @@
 
 #include <cassert>
 
+#include "Windows/PreWindowsApi.h"
+#include <Windows.h>
+#include "Windows/PostWindowsApi.h"
+
 #include "Runtime/RHI/Public/RHI.h"
 
 #include "AzureKinectDeviceThread.h"
@@ -225,12 +229,13 @@ bool UAzureKinectDevice::Start(void) {
             config.sensor_orientation = static_cast<O>(this->SensorOrientation);
             config.processing_mode = static_cast<P>(this->SkeletonTracking);
 
-            FPlatformMisc::SetEnvironmentVar(
-                TEXT("K4ABT_ENABLE_LOG_TO_A_FILE"),
-                TEXT("T:\\Programmcode\\AzKinectHack\\k4abt.log"));
-            FPlatformMisc::SetEnvironmentVar(
-                TEXT("K4ABT_LOG_LEVEL"),
-                TEXT("t"));
+            // Ensure that k4abt.dll looks in our plugin folder for
+            // dependencies.
+            auto prevPath = FPlatformMisc::GetEnvironmentVariable(TEXT("PATH"));
+            auto myPath = GetPluginLocation();
+            auto newPath = prevPath + TEXT(";") + myPath;
+            FPlatformMisc::SetEnvironmentVar(TEXT("PATH"), *newPath);
+
             this->_bodyTracker = k4abt::tracker::create(this->_calibration,
                 config);
         }
@@ -289,6 +294,35 @@ bool UAzureKinectDevice::Stop(void) {
     }
 
     return !this->_device;
+}
+
+
+/*
+ * UAzureKinectDevice::GetPluginLocation
+ */
+FString UAzureKinectDevice::GetPluginLocation(void) {
+    constexpr auto FLAGS = GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
+        | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT;
+    HMODULE hModule = NULL;
+    FString retval;
+    retval.GetCharArray().SetNumUninitialized(MAX_PATH);
+
+    if (::GetModuleHandleEx(FLAGS,
+            // Note: any function or variable in the plugin DLL would do.
+            reinterpret_cast<LPCTSTR>(&GetPluginLocation),
+            &hModule)) {
+        auto length = ::GetModuleFileName(hModule,
+            retval.GetCharArray().GetData(),
+            retval.GetAllocatedSize());
+        if ((length > 0) && (length < retval.GetAllocatedSize())) {
+            retval.GetCharArray().SetNum(length);
+            retval = FPaths::GetPath(retval);
+        } else {
+            retval.Empty();
+        }
+    }
+
+    return retval;
 }
 
 

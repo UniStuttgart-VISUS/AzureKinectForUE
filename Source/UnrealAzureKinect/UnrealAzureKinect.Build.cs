@@ -7,6 +7,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
+using System.Linq;
 using UnrealBuildTool;
 
 
@@ -64,22 +65,28 @@ public class UnrealAzureKinect : ModuleRules {
             Path.Combine(bodySdkPath, "sdk", "windows-desktop", "amd64", "release", "lib", "k4abt.lib")
         ]);
 
-
         var sdkBinaryDir = Path.Combine(sdkPath, "sdk", "windows-desktop", "amd64", "release", "bin");
         var sdkBinaries = Directory.GetFiles(sdkBinaryDir, "*.dll");
-
-        foreach (var d in sdkBinaries) {
-            System.Diagnostics.Debug.Assert(File.Exists(d));
-            var f = Path.GetFileName(d);
-            this.RuntimeDependencies.Add($"$(BinaryOutputDir)/{f}", d);
-            this.PublicDelayLoadDLLs.Add(d);
-        }
-
         var bodySdkBinaryDir = Path.Combine(bodySdkPath, "sdk", "windows-desktop", "amd64", "release", "bin");
         var bodySdkBinaries = Directory.GetFiles(bodySdkBinaryDir, "*.dll");
         var onnxModels = Directory.GetFiles(bodySdkBinaryDir, "*.onnx");
+        // A4BT depends on cudnn and several other CUDA libraries. It will not
+        // start even in DirectML mode if these libraries are not found (the
+        // library explicitly checks for them and fails to intialise).
+        // Therefore, we copy them from the Body SDK tools such that we do not
+        // have to redistribute them ourselves. Note that it is not sufficient
+        // to copy the DLLs to the plugin directory, but we must also crowbar
+        // it into the general search path for DLLs as the SDK is completely
+        // unaware of what UE does.
+        var bodySdkToolsDir = Path.Combine(bodySdkPath, "tools");
+        var bodySdkToolDependencies = Directory.GetFiles(bodySdkToolsDir, "*.dll");
 
-        foreach (var d in bodySdkBinaries) {
+        var binaries = sdkBinaries
+            .Concat(bodySdkBinaries)
+            .Concat(bodySdkToolDependencies)
+            .DistinctBy(Path.GetFileName);
+
+        foreach (var d in binaries) {
             System.Diagnostics.Debug.Assert(File.Exists(d));
             var f = Path.GetFileName(d);
             this.RuntimeDependencies.Add($"$(BinaryOutputDir)/{f}", d);
@@ -89,7 +96,7 @@ public class UnrealAzureKinect : ModuleRules {
         foreach (var d in onnxModels) {
             System.Diagnostics.Debug.Assert(File.Exists(d));
             var f = Path.GetFileName(d);
-            this.RuntimeDependencies.Add($"$(BinaryOutputDir)/{f}", d);
+            this.RuntimeDependencies.Add($"$(BinaryOutputDir)/{f}", d, StagedFileType.NonUFS);
         }
 
         this.PrivateIncludePaths.AddRange([ "UnrealAzureKinect/Private" ]);
