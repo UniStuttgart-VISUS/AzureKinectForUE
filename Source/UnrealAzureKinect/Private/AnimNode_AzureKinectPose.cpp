@@ -62,19 +62,18 @@ void FAnimNode_AzureKinectPose::EvaluateComponentSpace_AnyThread(
             TEXT("Update transform of bone %d."), t.BoneIndex.GetInt());
         auto xform = output.Pose.GetComponentSpaceTransform(t.BoneIndex);
         xform.SetRotation(t.Transform.Rotator().Quaternion());
-        //xform.SetTranslation(t.Transform.GetTranslation());
         output.Pose.SetComponentSpaceTransform(t.BoneIndex, xform);
 
-        UE_LOG(AzureKinectAnimNodeLog,
-            Display,
-            TEXT("Bone %s position: %s"),
-            *(output.AnimInstanceProxy->GetSkelMeshComponent()->GetBoneName(t.BoneIndex.GetInt()).ToString()),
-            *(output.Pose.GetComponentSpaceTransform(t.BoneIndex).GetTranslation().ToString()));
-        UE_LOG(AzureKinectAnimNodeLog,
-            Display,
-            TEXT("Bone %s rotation: %s"),
-            *(output.AnimInstanceProxy->GetSkelMeshComponent()->GetBoneName(t.BoneIndex.GetInt()).ToString()),
-            *(output.Pose.GetComponentSpaceTransform(t.BoneIndex).Rotator().ToString()));
+        //UE_LOG(AzureKinectAnimNodeLog,
+        //    Display,
+        //    TEXT("Bone %s position: %s"),
+        //    *(output.AnimInstanceProxy->GetSkelMeshComponent()->GetBoneName(t.BoneIndex.GetInt()).ToString()),
+        //    *(output.Pose.GetComponentSpaceTransform(t.BoneIndex).GetTranslation().ToString()));
+        //UE_LOG(AzureKinectAnimNodeLog,
+        //    Display,
+        //    TEXT("Bone %s rotation: %s"),
+        //    *(output.AnimInstanceProxy->GetSkelMeshComponent()->GetBoneName(t.BoneIndex.GetInt()).ToString()),
+        //    *(output.Pose.GetComponentSpaceTransform(t.BoneIndex).Rotator().ToString()));
     }
 }
 

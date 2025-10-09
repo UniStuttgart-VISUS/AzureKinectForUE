@@ -371,7 +371,8 @@ FTransform UAzureKinectDevice::ToTransform(const k4abt_joint_t& joint,
      * +ve Y-axis		Down		-ve Z-axis
      * +ve Z-axis		Forward		+ve X-axis
     */
-    FVector position(joint.position.xyz.z,
+    FVector position(
+        joint.position.xyz.z,
         joint.position.xyz.x,
         -joint.position.xyz.y);
     position *= 0.1f;
@@ -386,6 +387,11 @@ FTransform UAzureKinectDevice::ToTransform(const k4abt_joint_t& joint,
         -joint.orientation.wxyz.y,
         joint.orientation.wxyz.z,
         joint.orientation.wxyz.w);
+
+    // Idk whether the above worked in UE4, but in UE5, the character is lying
+    // on the floor w/o the following pre-transform.
+    rotation = FQuat(FRotator(0.0f, 0.0f, 90.0f)) * rotation;
+    //DrawDebugCoordinateSystem(GetWorld(), position, rotation.Rotator(), 1.0f);
 
     return FTransform(rotation, position);
 }
