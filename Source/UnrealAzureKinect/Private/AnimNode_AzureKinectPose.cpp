@@ -39,46 +39,67 @@ DEFINE_LOG_CATEGORY(AzureKinectAnimNodeLog);
  * FAnimNode_AzureKinectPose::FAnimNode_AzureKinectPose
  */
 FAnimNode_AzureKinectPose::FAnimNode_AzureKinectPose(void) {
-    BonesToModify.Reserve(K4ABT_JOINT_COUNT);
+    this->BonesToModify.Reserve(K4ABT_JOINT_COUNT);
     for (int i = 0; i < K4ABT_JOINT_COUNT; i++) {
-        BonesToModify.Add(static_cast<EKinectBodyJoint>(i), FBoneReference());
+        this->BonesToModify.Add(
+            static_cast<EKinectBodyJoint>(i),
+            FBoneReference());
     }
 }
 
-void FAnimNode_AzureKinectPose::Update_AnyThread(const FAnimationUpdateContext &Context) {
+
+/*
+ * FAnimNode_AzureKinectPose::EvaluateComponentSpace_AnyThread
+ */
+void FAnimNode_AzureKinectPose::EvaluateComponentSpace_AnyThread(
+        FComponentSpacePoseContext& output) {
+    DECLARE_SCOPE_HIERARCHICAL_COUNTER_ANIMNODE(EvaluateComponentSpace_AnyThread)
+    output.ResetToRefPose();
+
+    for (auto& t : this->_boneTransforms) {
+        UE_LOG(AzureKinectAnimNodeLog,
+            Display,
+            TEXT("Update transform of bone %d."), t.BoneIndex.GetInt());
+        auto xform = output.Pose.GetComponentSpaceTransform(t.BoneIndex);
+        xform.SetRotation(t.Transform.Rotator().Quaternion());
+        //xform.SetTranslation(t.Transform.GetTranslation());
+        output.Pose.SetComponentSpaceTransform(t.BoneIndex, xform);
+
+        UE_LOG(AzureKinectAnimNodeLog,
+            Display,
+            TEXT("Bone %s position: %s"),
+            *(output.AnimInstanceProxy->GetSkelMeshComponent()->GetBoneName(t.BoneIndex.GetInt()).ToString()),
+            *(output.Pose.GetComponentSpaceTransform(t.BoneIndex).GetTranslation().ToString()));
+        UE_LOG(AzureKinectAnimNodeLog,
+            Display,
+            TEXT("Bone %s rotation: %s"),
+            *(output.AnimInstanceProxy->GetSkelMeshComponent()->GetBoneName(t.BoneIndex.GetInt()).ToString()),
+            *(output.Pose.GetComponentSpaceTransform(t.BoneIndex).Rotator().ToString()));
+    }
+}
+
+
+/*
+ * FAnimNode_AzureKinectPose::Update_AnyThread
+ */
+void FAnimNode_AzureKinectPose::Update_AnyThread(
+        const FAnimationUpdateContext &context) {
     DECLARE_SCOPE_HIERARCHICAL_COUNTER_ANIMNODE(Update_AnyThread);
+    this->GetEvaluateGraphExposedInputs().Execute(context);
 
-    GetEvaluateGraphExposedInputs().Execute(Context);
+    auto mesh = context.AnimInstanceProxy->GetSkelMeshComponent();
 
-    USkeletalMeshComponent *SkelMesh = Context.AnimInstanceProxy->GetSkelMeshComponent();
+    this->_boneTransforms.Reset(K4ABT_JOINT_COUNT);
 
-    BoneTransforms.Reset(K4ABT_JOINT_COUNT);
+    for (int i = 0; i < this->Skeleton.Joints.Num(); ++i) {
+        auto joint = static_cast<EKinectBodyJoint>(i);
 
-    for (int i = 0; i < Skeleton.Joints.Num(); i++) {
-        EKinectBodyJoint JointIndex = static_cast<EKinectBodyJoint>(i);
-        if (BonesToModify.Contains(JointIndex)) {
-            int32 BoneIndex = SkelMesh->GetBoneIndex(BonesToModify[JointIndex].BoneName);
-            if (BoneIndex != INDEX_NONE) {
-                FCompactPoseBoneIndex CompactBoneIndex(BoneIndex);
-                BoneTransforms.Emplace(CompactBoneIndex, Skeleton.Joints[i]);
+        if (this->BonesToModify.Contains(joint)) {
+            auto bone = mesh->GetBoneIndex(this->BonesToModify[joint].BoneName);
+            if (bone != INDEX_NONE) {
+                FCompactPoseBoneIndex bi(bone);
+                this->_boneTransforms.Emplace(bi, this->Skeleton.Joints[i]);
             }
-
         }
     }
-
-}
-
-void FAnimNode_AzureKinectPose::EvaluateComponentSpace_AnyThread(FComponentSpacePoseContext &Output) {
-    DECLARE_SCOPE_HIERARCHICAL_COUNTER_ANIMNODE(EvaluateComponentSpace_AnyThread)
-
-    Output.ResetToRefPose();
-
-    for (const FBoneTransform &BoneTransform : BoneTransforms) {
-        FTransform Transform = Output.Pose.GetComponentSpaceTransform(BoneTransform.BoneIndex);
-        Transform.SetRotation(BoneTransform.Transform.Rotator().Quaternion());
-        Output.Pose.SetComponentSpaceTransform(BoneTransform.BoneIndex, Transform);
-    }
-
-
-
 }

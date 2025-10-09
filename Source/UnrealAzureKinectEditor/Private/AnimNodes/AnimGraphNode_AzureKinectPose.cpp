@@ -26,8 +26,6 @@
 
 #include "AnimGraphNode_AzureKinectPose.h"
 
-#include "AnimNodes/AnimGraphNode_AzureKinectPose.h"
-
 #include "AnimationGraphSchema.h"
 
 
@@ -76,7 +74,7 @@ FLinearColor UAnimGraphNode_AzureKinectPose::GetNodeTitleColor(void) const {
 FText UAnimGraphNode_AzureKinectPose::GetTooltipText(void) const {
     return LOCTEXT(
         "AnimGraphNode_AzureKinectPose_Tooltip",
-        "Process AzureKinect skeleton input into pose"
+        "Process Azure Kinect skeleton input into pose."
     );
 }
 

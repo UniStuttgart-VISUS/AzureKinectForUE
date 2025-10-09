@@ -73,7 +73,7 @@ public:
     /// <summary>
     /// Initialises a new instance.
     /// </summary>
-    UAzureKinectDevice();
+    UAzureKinectDevice(void);
 
     /// <summary>
     /// Initialises a new instance.

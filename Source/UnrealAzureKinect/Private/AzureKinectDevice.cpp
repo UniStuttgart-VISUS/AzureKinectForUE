@@ -28,9 +28,9 @@
 
 #include <cassert>
 
-#include "Windows/PreWindowsApi.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
 #include <Windows.h>
-#include "Windows/PostWindowsApi.h"
+#include "Windows/HideWindowsPlatformTypes.h"
 
 #include "Runtime/RHI/Public/RHI.h"
 
